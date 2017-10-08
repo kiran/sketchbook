@@ -9,12 +9,12 @@ import (
 )
 
 func TestInsertion(t *testing.T) {
-	bf := bloom.NewBloomFilter(10, 2)
+	bf := bloom.NewBloomFilter(10, 5)
 	bf.Add("hello")
 }
 
 func TestInclusion(t *testing.T) {
-	bf := bloom.NewBloomFilter(100, 2)
+	bf := bloom.NewBloomFilter(100, 5)
 	bf.Add("hello")
 	assert.True(t, bf.Test("hello"), "Expected the element to be in the bloom filter")
 
@@ -22,7 +22,7 @@ func TestInclusion(t *testing.T) {
 }
 
 func BenchmarkAddition(b *testing.B) {
-	bf := bloom.NewBloomFilter(100, 2)
+	bf := bloom.NewBloomFilter(100, 5)
 	for i := 0; i < b.N; i++ {
 		bf.Add(string(i))
 	}
