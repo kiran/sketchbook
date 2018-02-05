@@ -1,3 +1,17 @@
+/*
+Package bloom implements Bloom filters.
+
+A Bloom filter is a probabilistic data structure that attempts to answer membership queries --
+ie, is the element in the set. A Bloom filter may return false positives, but never returns a false
+negative.
+
+A Bloom filter has two tuning parameters: _m_, which is the size of the filter, and _k_, which is the
+number of hashes the Bloom filter uses per element. A Bloom filter is backed by a bitset (a bool array
+in this implementation.)
+
+The hashing function used in this implementation is murmurhash, a non-cryptographic hashing function.
+*/
+
 package bloom
 
 import (
@@ -13,13 +27,16 @@ type BloomFilter struct {
 	bitmap []bool // bitmap
 }
 
+// NewBloomFilter initializes and returns a new Bloom Filter.
 func NewBloomFilter(size uint, k uint) (bf *BloomFilter) {
 	bf = &BloomFilter{h: murmur3.New64(), k: k, m: size}
+	// todo: how do you make a golang bitmap?
 	bf.bitmap = make([]bool, size)
 	return
 }
 
-// todo: how do you make a golang bitmap?
+// Add takes a string value to add, and throws it into the bitmap.
+// todo: support any hashable values, not just strings. (or []byte?)
 func (bf *BloomFilter) Add(value string) {
 	indexes := bf.hashindexes(value)
 	// set the bits in the bitmap
@@ -28,6 +45,10 @@ func (bf *BloomFilter) Add(value string) {
 	}
 }
 
+// Test looks for the value in the bloom filter, and returns true
+// if it's possible that the value is in the set. It is possible
+// for the bloom filter to return true falsely, but a false return
+// is always correct.
 func (bf *BloomFilter) Test(value string) bool {
 	indexes := bf.hashindexes(value)
 	// test the bits in the bitmap
