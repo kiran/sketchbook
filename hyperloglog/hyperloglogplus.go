@@ -14,9 +14,9 @@ import (
 
 // HyperLogLog estimates cardinality
 type HyperLogLog struct {
-	buckets     []byte // byte array of buckets
-	bucketCount uint64 // number of buckets
-	precision   uint8  // precision (number of bytes to count)
+	buckets     []uint8 // byte array of counts
+	bucketCount uint64  // number of buckets
+	precision   uint8   // precision (number of bytes to count)
 	debug       bool
 }
 
@@ -29,12 +29,12 @@ func Initialize(precision uint8) (*HyperLogLog, error) {
 	}
 	hll.precision = precision
 	hll.bucketCount = 1 << precision
-	hll.buckets = make([]byte, hll.bucketCount)
+	hll.buckets = make([]uint8, hll.bucketCount)
 	return hll, nil
 }
 
-// ProcessElement adds another number to the HyperLogLog structure
-func (hll *HyperLogLog) ProcessElement(value string) {
+// Add adds another number to the HyperLogLog structure
+func (hll *HyperLogLog) Add(value string) {
 	// hash the number
 	h := fnv.New64a()
 	h.Write([]byte(value))
@@ -78,15 +78,33 @@ func (hll *HyperLogLog) countLeadingZeros(remainder uint64) uint8 {
 	return clz
 }
 
+func harmonicMean(nums []uint8) float64 {
+	var invertedSum float64
+	for _, num := range nums {
+		invertedSum += 1.0 / float64(num)
+	}
+	return float64(len(nums)) / invertedSum
+}
+
 // Cardinality emits the current estimated cardinality
-func (hll *HyperLogLog) Cardinality() (cardinality int) {
+func (hll *HyperLogLog) Cardinality() (cardinalityEstimate float64) {
 	// if there are empty buckets, use linear counting
+	// cardinalityEstimate = harmonicMean(hll.buckets)
+
+	invertedSum := 0.0
+	for _, zeros := range hll.buckets {
+		invertedSum += 1.0 / math.Exp2(float64(zeros))
+	}
+
+	est := 0.7213 / (1 + 1.079/float64(hll.bucketCount))
+
+	cardinalityEstimate = est * float64(hll.bucketCount) * float64(hll.bucketCount) / invertedSum
 
 	// else do some low-range/high-range bias correction
 
 	// count up all the HLL zeros estimates
 	// take the harmonic mean of everything; renormalize
-	return 0
+	return cardinalityEstimate
 }
 
 // EstimatedError returns the approximate precision

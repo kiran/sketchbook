@@ -1,6 +1,8 @@
 package hyperloglog
 
 import (
+	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,4 +29,19 @@ func TestSplitWord(t *testing.T) {
 	i, remainder = h.splitWord(0x0123456789abcdef)
 	assert.Equal(t, uint64(0x0123), i)
 	assert.Equal(t, uint64(0x456789abcdef0000), remainder)
+}
+
+func TestHarmonicMean(t *testing.T) {
+	nums := []uint8{1, 4, 4}
+	assert.Equal(t, float64(2), harmonicMean(nums))
+}
+
+func TestHll(t *testing.T) {
+	hll, _ := Initialize(4)
+	for i := 0; i < 20000; i++ {
+		val := rand.Int()
+		hll.Add(strconv.Itoa(val))
+	}
+	cardinalityEstimate := hll.Cardinality()
+	assert.Equal(t, float64(20000), cardinalityEstimate)
 }
