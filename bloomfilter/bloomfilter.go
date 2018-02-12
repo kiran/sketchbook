@@ -67,7 +67,7 @@ func (bf *BloomFilter) Test(value string) bool {
 // the list of multiply hashed indexes into the bitmap
 // Kirsch & Mitzenmacher (2008) show that you can simulate
 // i independent hash functions by using g_i(x) = h1(x) + ih2(x)
-// instead of using 2 separate hashes, this just splits a 128-bit
+// instead of using 2 separate hashes, this just splits a 64-bit
 // hash in two.
 func (bf *BloomFilter) hashindexes(value string) []uint {
 	indexes := make([]uint, bf.k, bf.k)
