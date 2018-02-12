@@ -1,9 +1,10 @@
 package hyperloglog
 
 import (
+	"fmt"
 	"math/rand"
-	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -36,12 +37,21 @@ func TestHarmonicMean(t *testing.T) {
 	assert.Equal(t, float64(2), harmonicMean(nums))
 }
 
+func randStr(n int) string {
+	i := rand.Uint32()
+	return fmt.Sprintf("a%s %s", i, n)
+}
+
 func TestHll(t *testing.T) {
-	hll, _ := Initialize(4)
-	for i := 0; i < 20000; i++ {
+	rand.Seed(time.Now().UnixNano())
+	hll, _ := Initialize(16)
+	n := 300000
+	for i := 0; i < n; i++ {
 		val := rand.Int()
-		hll.Add(strconv.Itoa(val))
+		hll.Add(randStr(val))
+		hll.Add(randStr(val))
 	}
 	cardinalityEstimate := hll.Cardinality()
-	assert.Equal(t, float64(20000), cardinalityEstimate)
+
+	assert.InEpsilon(t, n, cardinalityEstimate, 0.03)
 }
